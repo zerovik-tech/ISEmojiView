@@ -26,9 +26,19 @@ public struct EmojiView_SwiftUI: UIViewRepresentable {
 
     public func makeUIView(context: Context) -> EmojiView {
         let keyboardSettings = KeyboardSettings(bottomType: .categories)
+        keyboardSettings.needToShowAbcButton = true
+        keyboardSettings.needToShowDeleteButton = true
+        keyboardSettings.updateRecentEmojiImmediately = false
+        keyboardSettings.countOfRecentsEmojis = 30
         let emojiView = EmojiView(keyboardSettings: keyboardSettings)
         emojiView.translatesAutoresizingMaskIntoConstraints = false
+//        emojiView.backgroundColor = .systemPink
         emojiView.delegate = context.coordinator
+        
+        let bottomView = emojiView.subviews.last?.subviews.last
+        let collecitonViewToSuperViewTrailingConstraint = bottomView?.value(forKey: "collecitonViewToSuperViewTrailingConstraint") as? NSLayoutConstraint
+        collecitonViewToSuperViewTrailingConstraint?.priority = .defaultLow
+        
         
         return emojiView
     }
