@@ -12,12 +12,23 @@ import UIKit
 public struct EmojiView_SwiftUI: UIViewRepresentable {
     public typealias UIViewType = EmojiView
     
+    @Binding var searchText: String
+    var hideBottomMenu: Bool
     var didSelect: ((String) -> Void)?
     var didPressChangeKeyboard: (() -> Void)?
     var didPressDeleteBackward: (() -> Void)?
     var dDidPressDismissKeyboard: (() -> Void)?
     
-    public init(didSelect: ((String) -> Void)? = nil, didPressChangeKeyboard: (() -> Void)? = nil, didPressDeleteBackward: (() -> Void)? = nil, dDidPressDismissKeyboard: (() -> Void)? = nil) {
+    public init(
+        searchText: Binding<String>,
+        hideBottomMenu: Bool = false,
+        didSelect: ((String) -> Void)? = nil,
+        didPressChangeKeyboard: (() -> Void)? = nil,
+        didPressDeleteBackward: (() -> Void)? = nil,
+        dDidPressDismissKeyboard: (() -> Void)? = nil
+    ) {
+        self._searchText = searchText
+        self.hideBottomMenu = hideBottomMenu
         self.didSelect = didSelect
         self.didPressChangeKeyboard = didPressChangeKeyboard
         self.didPressDeleteBackward = didPressDeleteBackward
@@ -39,7 +50,7 @@ public struct EmojiView_SwiftUI: UIViewRepresentable {
         let collecitonViewToSuperViewTrailingConstraint = bottomView?.value(forKey: "collecitonViewToSuperViewTrailingConstraint") as? NSLayoutConstraint
         collecitonViewToSuperViewTrailingConstraint?.priority = .defaultLow
         
-        
+        context.coordinator.emojiView = emojiView
         return emojiView
     }
     
@@ -50,6 +61,8 @@ public struct EmojiView_SwiftUI: UIViewRepresentable {
             uiView.widthAnchor.constraint(equalTo: superview.widthAnchor),
             uiView.heightAnchor.constraint(equalTo: superview.heightAnchor)
         ])
+        uiView.filterEmojis(with: searchText)
+        uiView.hideBottomMenu(hideBottomMenu)
     }
     
     public func makeCoordinator() -> Coordinator {
@@ -59,6 +72,7 @@ public struct EmojiView_SwiftUI: UIViewRepresentable {
     public class Coordinator: NSObject, EmojiViewDelegate {
         
         let parent: EmojiView_SwiftUI
+        weak var emojiView: EmojiView?
         
         init(_ parent: EmojiView_SwiftUI) {
             self.parent = parent
@@ -87,7 +101,7 @@ public struct EmojiView_SwiftUI: UIViewRepresentable {
 @available(iOS 13.0, *)
 struct EmojiView_SwiftUI_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiView_SwiftUI()
+        EmojiView_SwiftUI(searchText: .constant(""))
             .frame(width: 300, height: 500)
             .border(Color.red, width: 2)
             .padding()

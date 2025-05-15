@@ -79,6 +79,10 @@ internal class EmojiCollectionView: UIView {
         return !self.emojiPopView.isHidden;
     }
     
+    public func reloadData() {
+        collectionView.reloadData()
+    }
+    
     // MARK: - Init functions
     
     static func loadFromNib(emojis: [EmojiCategory]) -> EmojiCollectionView {

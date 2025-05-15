@@ -82,6 +82,7 @@ final public class EmojiView: UIView {
     private weak var pageControlBottomView: PageControlBottomView?
     private weak var categoriesBottomView: CategoriesBottomView?
     private var bottomConstraint: NSLayoutConstraint?
+    private var bottomContainerHeightConstraint: NSLayoutConstraint?
     
     private var bottomType: BottomType!
     private var emojis: [EmojiCategory]!
@@ -151,6 +152,41 @@ final public class EmojiView: UIView {
         }
         
         return emojiCollectionView?.point(inside: point, with: event) ?? true
+    }
+    
+    // Add this method to filter emojis by search string
+    public func filterEmojis(with search: String?) {
+        guard let search = search, !search.isEmpty else {
+            // Reset to all emojis
+            emojis = keyboardSettings?.customEmojis ?? EmojiLoader.emojiCategories()
+            emojiCollectionView?.emojis = emojis
+            emojiCollectionView?.reloadData()
+            return
+        }
+        let lowercased = search.lowercased()
+        let allCategories = keyboardSettings?.customEmojis ?? EmojiLoader.emojiCategories()
+        var filteredCategories: [EmojiCategory] = []
+        for category in allCategories {
+            let filteredEmojis = category.emojis.filter { emoji in
+                (emoji.emoji.hasPrefix(lowercased)) ||
+                (emoji.name?.lowercased().hasPrefix(lowercased) ?? false) ||
+                (emoji.keywords?.contains(where: { $0.lowercased().hasPrefix(lowercased) }) ?? false)
+            }
+            if !filteredEmojis.isEmpty {
+                filteredCategories.append(EmojiCategory(category: category.category, emojis: filteredEmojis))
+            }
+        }
+        emojis = filteredCategories
+        emojiCollectionView?.emojis = emojis
+        emojiCollectionView?.reloadData()
+    }
+    
+    // Add this method to hide/show the bottom menu
+    public func hideBottomMenu(_ hide: Bool) {
+        bottomContainerView?.isHidden = hide
+        bottomContainerHeightConstraint?.constant = hide ? 0 : 44
+        setNeedsLayout()
+        layoutIfNeeded()
     }
     
 }
@@ -343,6 +379,11 @@ extension EmojiView {
                 views: views
             )
         )
+        
+        // Save a reference to the height constraint
+        if let constraint = self.constraints.first(where: { $0.firstItem === bottomContainerView && $0.firstAttribute == .height }) {
+            bottomContainerHeightConstraint = constraint
+        }
         
         var bottomOffset = CGFloat(0)
         
